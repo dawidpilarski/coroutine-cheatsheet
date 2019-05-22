@@ -95,6 +95,13 @@ The functions, that steer the coroutine behavior are listed below:
 		promise.return_value(<expression>);
 	\end{minted}
 
+\section{coroutine\_handle}
+
+	Coroutine handle is our object, that directly operates on the coroutine
+	(it can for example resume it or delete it). It's API is as follows:
+
+	\inputminted{c++}{code-examples/theory-custom-coroutine/coroutine-handle.hpp}
+
 	\section{Awaitable primitives}
 
 	The standard library defined two primitives, that can be
@@ -134,6 +141,17 @@ The functions, that steer the coroutine behavior are listed below:
 
 	\section{co\_await transformation}
 
-	\section{coroutine\_handle}
+	Whenever co\_await keyword is encountered by compiler, compiler generates following code (besides the procedure for acquiring awaiter)
+
+	\inputminted{c++}{code-examples/theory-custom-coroutine/co-await-transformation.cpp}
+
+	where await\_suspend expression is one of the following:
+
+	\begin{itemize}
+		\item when await\_suspend returns void \\ \inputminted[firstline=2, lastline=8]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
+		\item when await\_suspemd returns bool \\ \inputminted[firstline=11, lastline=19]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
+		\item when await\_suspemd returns another coroutine\_handle \\ \inputminted[firstline=22, lastline=31]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
+	
+	\end{itemize}
 
 \end{document}
