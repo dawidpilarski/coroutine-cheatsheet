@@ -1,0 +1,139 @@
+% !TeX Options = -shell-escape
+
+\documentclass[twoside,twocolumn, 10pt]{article}
+\usepackage[english]{babel}
+\usepackage{fancyhdr}
+\usepackage{minted}
+\usepackage{xcolor}
+
+\setminted[c++]
+{
+fontsize=\footnotesize,
+autogobble=true
+}
+
+\author{Dawid Pilarski}
+\date{}
+\title{Coroutines cheatsheet}
+
+\begin{document}
+
+\section{Coroutine body}
+
+Every time, the compiler encounters one of the following
+keywords:
+\begin{itemize}
+	\item co\_return
+	\item co\_yield
+	\item co\_await
+\end{itemize}
+
+function in which body the keyword was encountered is transformed into
+the coroutine. This is performed in the following schema:
+
+\inputminted{c++}{code-examples/theory-custom-coroutine/coroutine-body.cpp}
+
+\section{promise\_type}
+
+Promise\_type is the type used by the compiler to control behavior of the coroutine.
+It should be defined (as publicly available) either as a member of the coroutine type like:
+
+\begin{minted}{c++}
+returned_type::promise_type
+\end{minted}
+
+or as a member of the specialization of the coroutine\_traits:
+
+\begin{minted}{c++}
+namespace std{
+	template <>
+  struct coroutine_traits<returned_type>{
+    struct promise_type{
+      //definition
+    };
+  };
+}
+\end{minted}
+
+The functions, that steer the coroutine behavior are listed below:
+
+\inputminted{c++}{code-examples/theory-custom-coroutine/promise-type.hpp}
+
+\section{co\_yield}
+	Each time, when compiler sees co\_yield keyword, the following
+	code is generated:
+
+\begin{minted}{c++}
+	co_await promise.yield_value(<expression>);
+\end{minted}
+
+	If your type is not meant to support yield
+	expression, you can suppress it with:
+
+\begin{minted}{c++}
+  auto yield_value() = delete;
+\end{minted}
+
+  in the definition of your promise\_type.
+
+\section{co\_return}
+	To finish the coroutine and optionally return the value from it
+	one can use the co\_return expression. Such expression is also
+	translated by the compiler depending on the operand of the
+	co\_return keyword.
+
+	Void expressions and co\_return without any expression is
+	translated into following form:
+	\begin{minted}{c++}
+		<optional_expression>;
+		promise.return_void();
+	\end{minted}
+
+	while for the non-void expressions, following code is generated:
+
+	\begin{minted}{c++}
+		promise.return_value(<expression>);
+	\end{minted}
+
+	\section{Awaitable primitives}
+
+	The standard library defined two primitives, that can be
+	operands of the co\_await operator, namely:
+	\begin{itemize}
+		\item std::suspend\_always - causes suspension of the coroutine
+		\item std::suspend\_never - is a no-op
+	\end{itemize}
+
+	\section{Creating awaiter}
+
+	The co\_await operator needs so called awaiter object to know
+	how should a coroutine behave on awaiting an awaitable object.
+
+	The awaiter object is created in following way:
+
+	\begin{itemize}
+		\item The await\_transform function form the
+		 promise\_type is executed on the co\_await operand,
+		\item co\_await operator is searched in the body of the awaitable,
+		\item if not found global co\_await operator is searched for,
+		\item if not found awaitable becomes the awaiter
+	\end{itemize}
+
+	\section{Awaiter}
+
+	Awaiter object must have following functions defined in it's body:
+
+	\inputminted{c++}{code-examples/theory-custom-coroutine/awaiter.hpp}
+
+	Their responsibility:
+	\begin{itemize}
+		\item await\_ready - knows whether the awaitable is finished and result can be fetched from it,
+		\item await\_suspend - knows how to await on the awaitable (usually how to resume it),
+		\item await\_resume - result of this function evaluation is the result of the whole co\_await expression.
+	\end{itemize}
+
+	\section{co\_await transformation}
+
+	\section{coroutine\_handle}
+
+\end{document}
