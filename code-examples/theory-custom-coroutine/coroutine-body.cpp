@@ -1,6 +1,7 @@
 {
   promise_type promise;
-  auto&& return_object = promise.get_return_object();
+  auto&& return_object = 
+         promise.get_return_object();
   co_await promise.initial_suspend();
 
   try{

@@ -3,11 +3,19 @@
 \documentclass[twoside,twocolumn, 10pt]{article}
 \usepackage[english]{babel}
 \usepackage{fancyhdr}
-\usepackage{minted}
+\usepackage[newfloat=true]{minted}
 \usepackage{xcolor}
+\usepackage{enumitem}
+% \setitemize{noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt}
+\setitemize{noitemsep}
+
+\SetupFloatingEnvironment{listing}{placement=htp}
+
+\definecolor{listingbg}{RGB}{248, 249, 250}
 
 \setminted[c++]
 {
+bgcolor=listingbg,
 fontsize=\footnotesize,
 autogobble=true
 }
@@ -18,25 +26,28 @@ autogobble=true
 
 \begin{document}
 
+\pagebreak[0]
 \section{Coroutine body}
 
-Every time, the compiler encounters one of the following
-keywords:
+Every time, the compiler encounters any of the following
+keywords: 
 \begin{itemize}
 	\item co\_return
 	\item co\_yield
 	\item co\_await
 \end{itemize}
 
-function in which body the keyword was encountered is transformed into
-the coroutine. This is performed in the following schema:
+function is transformed into the coroutine using following schema:
 
+\begin{listing}
 \inputminted{c++}{code-examples/theory-custom-coroutine/coroutine-body.cpp}
+\end{listing}
 
+\pagebreak[0]
 \section{promise\_type}
 
-Promise\_type is the type used by the compiler to control behavior of the coroutine.
-It should be defined (as publicly available) either as a member of the coroutine type like:
+Promise\_type is used by the compiler to control behavior of the coroutine.
+It should be defined as a member of the coroutine type like:
 
 \begin{minted}{c++}
 returned_type::promise_type
@@ -46,11 +57,9 @@ or as a member of the specialization of the coroutine\_traits:
 
 \begin{minted}{c++}
 namespace std{
-	template <>
+  template <> 
   struct coroutine_traits<returned_type>{
-    struct promise_type{
-      //definition
-    };
+    struct promise_type;
   };
 }
 \end{minted}
@@ -59,6 +68,7 @@ The functions, that steer the coroutine behavior are listed below:
 
 \inputminted{c++}{code-examples/theory-custom-coroutine/promise-type.hpp}
 
+\pagebreak[0]
 \section{co\_yield}
 	Each time, when compiler sees co\_yield keyword, the following
 	code is generated:
@@ -67,41 +77,36 @@ The functions, that steer the coroutine behavior are listed below:
 	co_await promise.yield_value(<expression>);
 \end{minted}
 
-	If your type is not meant to support yield
-	expression, you can suppress it with:
-
-\begin{minted}{c++}
-  auto yield_value() = delete;
-\end{minted}
-
-  in the definition of your promise\_type.
-
+\pagebreak[0]
 \section{co\_return}
-	To finish the coroutine and optionally return the value from it
-	one can use the co\_return expression. Such expression is also
-	translated by the compiler depending on the operand of the
-	co\_return keyword.
+	co\_return is used to finish the coroutine just like return ends function. 
+	Such expression is translated by the compiler according to the rules:
 
-	Void expressions and co\_return without any expression is
-	translated into following form:
-	\begin{minted}{c++}
+	\begin{itemize}
+		\item for void expressions and no expressions:
+		\begin{minted}{c++}
 		<optional_expression>;
 		promise.return_void();
-	\end{minted}
+		\end{minted}
 
-	while for the non-void expressions, following code is generated:
+		\item for non-void expressions:
 
-	\begin{minted}{c++}
+		\begin{minted}{c++}
 		promise.return_value(<expression>);
 	\end{minted}
+	
+	\end{itemize}
+		
 
-\section{coroutine\_handle}
+  \pagebreak[0]
+  \section{coroutine\_handle}
 
-	Coroutine handle is our object, that directly operates on the coroutine
+	Coroutine handle is an object, that directly operates on the coroutine
 	(it can for example resume it or delete it). It's API is as follows:
 
 	\inputminted{c++}{code-examples/theory-custom-coroutine/coroutine-handle.hpp}
 
+	\pagebreak[0]
 	\section{Awaitable primitives}
 
 	The standard library defined two primitives, that can be
@@ -111,6 +116,7 @@ The functions, that steer the coroutine behavior are listed below:
 		\item std::suspend\_never - is a no-op
 	\end{itemize}
 
+  \pagebreak[0]
 	\section{Creating awaiter}
 
 	The co\_await operator needs so called awaiter object to know
@@ -126,6 +132,7 @@ The functions, that steer the coroutine behavior are listed below:
 		\item if not found awaitable becomes the awaiter
 	\end{itemize}
 
+  \pagebreak[0]
 	\section{Awaiter}
 
 	Awaiter object must have following functions defined in it's body:
@@ -139,6 +146,7 @@ The functions, that steer the coroutine behavior are listed below:
 		\item await\_resume - result of this function evaluation is the result of the whole co\_await expression.
 	\end{itemize}
 
+  \pagebreak[0]
 	\section{co\_await transformation}
 
 	Whenever co\_await keyword is encountered by compiler, compiler generates following code (besides the procedure for acquiring awaiter)
