@@ -14,8 +14,8 @@ struct promise_type{
   void return_void();
 
   // support for yielding values - returns awaitable
-  auto yield_value();
+  auto yield_value(/*co_yield operand*/);
 
   // modification of the awaitable
-  auto await_transform(/*co\_await operand*/);
+  auto await_transform(/*co_await operand*/);
 };
