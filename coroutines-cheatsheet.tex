@@ -29,7 +29,7 @@ autogobble=true
 \pagebreak[0]
 \section{Coroutine body}
 
-Every time, the compiler encounters any of the following
+Every time the compiler encounters any of the following
 keywords: 
 \begin{itemize}
 	\item co\_return
@@ -37,7 +37,7 @@ keywords:
 	\item co\_await
 \end{itemize}
 
-function is transformed into the coroutine using following schema:
+the function is transformed into a coroutine using following schema:
 
 \begin{listing}
 \inputminted{c++}{code-examples/theory-custom-coroutine/coroutine-body.cpp}
@@ -46,8 +46,8 @@ function is transformed into the coroutine using following schema:
 \pagebreak[0]
 \section{promise\_type}
 
-Promise\_type is used by the compiler to control behavior of the coroutine.
-It should be defined as a member of the coroutine type like:
+Promise\_type is used by the compiler to control the behavior of coroutines.
+It should be defined as a member of a coroutine type like this:
 
 \begin{minted}{c++}
 returned_type::promise_type
@@ -64,13 +64,13 @@ namespace std{
 }
 \end{minted}
 
-The functions, that steer the coroutine behavior are listed below:
+Functions that steer the coroutine behavior are listed below:
 
 \inputminted{c++}{code-examples/theory-custom-coroutine/promise-type.hpp}
 
 \pagebreak[0]
 \section{co\_yield}
-	Each time, when compiler sees co\_yield keyword, the following
+	Each time the compiler sees a co\_yield keyword, the following
 	code is generated:
 
 \begin{minted}{c++}
@@ -79,8 +79,8 @@ The functions, that steer the coroutine behavior are listed below:
 
 \pagebreak[0]
 \section{co\_return}
-	co\_return is used to finish the coroutine just like return ends function. 
-	Such expression is translated by the compiler according to the rules:
+	co\_return is used to finish a coroutine just like return ends a function. 
+	Such expressions are translated by the compiler according to these rules:
 
 	\begin{itemize}
 		\item for void expressions and no expressions:
@@ -101,15 +101,15 @@ The functions, that steer the coroutine behavior are listed below:
   \pagebreak[0]
   \section{coroutine\_handle}
 
-	Coroutine handle is an object, that directly operates on the coroutine
-	(it can for example resume it or delete it). It's API is as follows:
+	A coroutine handle is an object, that directly operates on the coroutine
+	(it can for example resume it or delete it). Its API is as follows:
 
 	\inputminted{c++}{code-examples/theory-custom-coroutine/coroutine-handle.hpp}
 
 	\pagebreak[0]
 	\section{Awaitable primitives}
 
-	The standard library defined two primitives, that can be
+	The standard library defines two primitives, that can be
 	operands of the co\_await operator, namely:
 	\begin{itemize}
 		\item std::suspend\_always - causes suspension of the coroutine
@@ -117,29 +117,29 @@ The functions, that steer the coroutine behavior are listed below:
 	\end{itemize}
 
   \pagebreak[0]
-	\section{Creating awaiter}
+	\section{Creating an awaiter}
 
-	The co\_await operator needs so called awaiter object to know
-	how should a coroutine behave on awaiting an awaitable object.
+	The co\_await operator needs a so-called awaiter object to know
+	how a coroutine should behave on awaiting an awaitable object.
 
 	The awaiter object is created in following way:
 
 	\begin{itemize}
-		\item The await\_transform function form the
+		\item The await\_transform function from the
 		 promise\_type is executed on the co\_await operand,
-		\item co\_await operator is searched in the body of the awaitable,
-		\item if not found global co\_await operator is searched for,
-		\item if not found awaitable becomes the awaiter
+		\item a co\_await operator is searched in the body of the awaitable,
+		\item if not found, a global co\_await operator is searched,
+		\item if not found, the awaitable becomes the awaiter
 	\end{itemize}
 
   \pagebreak[0]
 	\section{Awaiter}
 
-	Awaiter object must have following functions defined in it's body:
+	Awaiter objects must have the following functions defined in their bodies:
 
 	\inputminted{c++}{code-examples/theory-custom-coroutine/awaiter.hpp}
 
-	Their responsibility:
+	Their responsibilities are:
 	\begin{itemize}
 		\item await\_ready - knows whether the awaitable is finished and result can be fetched from it,
 		\item await\_suspend - knows how to await on the awaitable (usually how to resume it),
@@ -149,16 +149,16 @@ The functions, that steer the coroutine behavior are listed below:
   \pagebreak[0]
 	\section{co\_await transformation}
 
-	Whenever co\_await keyword is encountered by compiler, compiler generates following code (besides the procedure for acquiring awaiter)
+	Whenever a co\_await keyword is encountered by the compiler, it generates the following code (besides the procedure for acquiring the awaiter)
 
 	\inputminted{c++}{code-examples/theory-custom-coroutine/co-await-transformation.cpp}
 
-	where await\_suspend expression is one of the following:
+	where <await\_suspend> is one of the following:
 
 	\begin{itemize}
-		\item when await\_suspend returns void \\ \inputminted[firstline=2, lastline=8]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
-		\item when await\_suspemd returns bool \\ \inputminted[firstline=11, lastline=19]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
-		\item when await\_suspemd returns another coroutine\_handle \\ \inputminted[firstline=22, lastline=31]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
+    \item when await\_suspend() returns void \\ \inputminted[firstline=2, lastline=8]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
+    \item when await\_suspend() returns bool \\ \inputminted[firstline=11, lastline=19]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
+    \item when await\_suspend() returns another coroutine\_handle \\ \inputminted[firstline=22, lastline=31]{c++}{code-examples/theory-custom-coroutine/co-await-transformation-suspend.cpp}
 	
 	\end{itemize}
 
